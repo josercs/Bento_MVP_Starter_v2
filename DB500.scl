@@ -1,0 +1,9 @@
+DATA_BLOCK DB500
+  TITLE = 'Holding Registers (Modbus 40001+)'
+  { S7_Optimized_Access := 'TRUE' }
+  VERSION : 0.1
+  VAR
+    HoldReg : ARRAY[1..64] OF WORD;
+  END_VAR
+BEGIN
+END_DATA_BLOCK

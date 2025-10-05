@@ -1,0 +1,69 @@
+FUNCTION_BLOCK FB200_MVP
+{ S7_Optimized_Access := 'TRUE' }
+VAR_INPUT
+  // Entradas de campo (mapear para tags/endereços físicos)
+  S1 : BOOL;           // Peça boa (pulso)
+  S2 : BOOL;           // Refugo (pulso)
+  RUN_RAW : BOOL;      // Sinal bruto de RUN (contator, torre, etc)
+  AI_CUR_RAW : INT;    // 4–20 mA (raw) -> ajustar escala do módulo
+  AI_VIB_RAW : INT;    // 0–10 V (raw)  -> ajustar escala do módulo
+END_VAR
+VAR
+  // Estados internos
+  PrevS1 : BOOL := FALSE;
+  PrevS2 : BOOL := FALSE;
+  GoodCnt : UDINT := 0;
+  ScrapCnt : UDINT := 0;
+  RunFilt : TON;      // temporizador para filtrar RUN (500 ms)
+END_VAR
+VAR_TEMP
+  currNorm : REAL;
+  vibNorm  : REAL;
+  currX10  : INT;
+  vibX10   : INT;
+END_VAR
+BEGIN
+  // --- Contagem por borda de subida ---
+  IF (S1 AND NOT PrevS1) THEN
+    GoodCnt := GoodCnt + 1;
+  END_IF;
+  PrevS1 := S1;
+
+  IF (S2 AND NOT PrevS2) THEN
+    ScrapCnt := ScrapCnt + 1;
+  END_IF;
+  PrevS2 := S2;
+
+  // --- RUN com filtro de 500 ms ---
+  RunFilt(IN := RUN_RAW, PT := T#500ms);
+
+  // --- Coils Modbus (DB510) ---
+  DB510.Coils[1] := S1;
+  DB510.Coils[2] := S2;
+  DB510.Coils[3] := RunFilt.Q;
+
+  // --- Escala 4–20 mA -> 0..100.0 (x10 gravado em WORD) ---
+  // Ajuste os limites conforme o módulo analógico utilizado
+  currNorm := (REAL(INT_TO_DINT(AI_CUR_RAW) - 5530) / REAL(27648 - 5530)); // 4mA≈5530; 20mA=27648
+  IF currNorm < 0.0 THEN currNorm := 0.0; END_IF;
+  IF currNorm > 1.0 THEN currNorm := 1.0; END_IF;
+  currX10 := REAL_TO_INT(currNorm * 1000.0); // 0..1000 = 0.0..100.0
+  IF currX10 < 0 THEN currX10 := 0; END_IF;
+  IF currX10 > 65535 THEN currX10 := 65535; END_IF;
+  DB500.HoldReg[1] := WORD(currX10);
+
+  // --- Escala 0–10 V -> 0..100.0 (x10 gravado em WORD) ---
+  vibNorm := REAL(INT_TO_DINT(AI_VIB_RAW)) / REAL(27648); // 0..1
+  IF vibNorm < 0.0 THEN vibNorm := 0.0; END_IF;
+  IF vibNorm > 1.0 THEN vibNorm := 1.0; END_IF;
+  vibX10 := REAL_TO_INT(vibNorm * 1000.0);
+  IF vibX10 < 0 THEN vibX10 := 0; END_IF;
+  IF vibX10 > 65535 THEN vibX10 := 65535; END_IF;
+  DB500.HoldReg[2] := WORD(vibX10);
+
+  // --- Contadores em 2x WORD (lo/hi) nos Holding Registers ---
+  DB500.HoldReg[10] := WORD(GoodCnt);               // low word
+  DB500.HoldReg[11] := WORD(SHR(GoodCnt, 16));      // high word
+  DB500.HoldReg[12] := WORD(ScrapCnt);              // low word
+  DB500.HoldReg[13] := WORD(SHR(ScrapCnt, 16));     // high word
+END_FUNCTION_BLOCK

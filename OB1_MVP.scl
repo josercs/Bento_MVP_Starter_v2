@@ -1,0 +1,29 @@
+ORGANIZATION_BLOCK OB1
+TITLE = 'Main Cycle'
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+VAR
+    // Multi-instâncias (sem DB separado): memória fica no OB1
+    MBServer : MB_SERVER;
+    MVP      : FB200_MVP;
+END_VAR
+BEGIN
+    // --- Servidor Modbus/TCP ---
+    MBServer(
+        REQ := TRUE,
+        ID  := 1, // Unit ID
+        MB_HOLD_REG    := P#DB500.DBX0.0 WORD 64,
+        MB_INPUT_REG   := P#DB501.DBX0.0 WORD 32,
+        MB_COILS       := P#DB510.DBX0.0 BOOL 64,
+        MB_DISC_INPUTS := P#DB520.DBX0.0 BOOL 64
+    );
+
+    // --- Lógica MVP (contagem/escala) ---
+    MVP(
+        S1         := DI_S1,
+        S2         := DI_S2,
+        RUN_RAW    := DI_RUN,
+        AI_CUR_RAW := AI_Current_Raw,
+        AI_VIB_RAW := AI_Vib_Raw
+    );
+END_ORGANIZATION_BLOCK

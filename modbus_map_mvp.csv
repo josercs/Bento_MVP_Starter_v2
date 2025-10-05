@@ -1,0 +1,10 @@
+type,address,name,description,unit,scale
+coil,00001,S1_piece,Estado instantâneo peça (S1),,
+coil,00002,S2_scrap,Estado instantâneo refugo (S2),,
+coil,00003,RUN,RUN filtrado 500ms,,
+holding,40001,Current_x10,Corrente normalizada x10 (0..1000 ↔ 0..100.0),%,x10
+holding,40002,Vibration_x10,Vibração normalizada x10 (0..1000 ↔ 0..100.0),%,x10
+holding,40010,GoodCount_lo,Contador peças boas (low word),,
+holding,40011,GoodCount_hi,Contador peças boas (high word),,
+holding,40012,ScrapCount_lo,Contador refugo (low word),,
+holding,40013,ScrapCount_hi,Contador refugo (high word),,

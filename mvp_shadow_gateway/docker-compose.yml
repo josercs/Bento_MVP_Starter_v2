@@ -1,0 +1,76 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mvp_mosquitto
+    restart: unless-stopped
+    profiles:
+      - mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto:/mosquitto
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: mvp_influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USER:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASS:-admin123}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-retrofit4}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-mvp}
+      DOCKER_INFLUXDB_INIT_RETENTION: 30d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:-admintoken}
+    volumes:
+      - ./influxdb:/var/lib/influxdb2
+
+  telegraf:
+    image: telegraf:1.30
+    container_name: mvp_telegraf
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    environment:
+      MB_HOST: ${MB_HOST:-192.168.1.121}
+      MB_UNIT: ${MB_UNIT:-1}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:-admintoken}
+      INFLUX_ORG: ${INFLUX_ORG:-retrofit4}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-mvp}
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: mvp_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-admin}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+
+  stops:
+    image: python:3.11-slim
+    container_name: mvp_stops
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    environment:
+      MB_HOST: ${MB_HOST:-192.168.1.121}
+      MB_PORT: 502
+      MB_UNIT: ${MB_UNIT:-1}
+      STOP_THRESHOLD: ${STOP_THRESHOLD:-120}
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: ${INFLUX_ORG:-retrofit4}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-mvp}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:-admintoken}
+    volumes:
+      - ./services/stops:/app
+    working_dir: /app
+    command: /bin/sh -c "pip install pymodbus==3.6.5 && python /app/stops.py"

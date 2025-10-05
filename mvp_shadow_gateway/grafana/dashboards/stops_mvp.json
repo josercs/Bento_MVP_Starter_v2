@@ -1,0 +1,39 @@
+{
+  "title": "MVP — Paradas",
+  "uid": "mvp-stops",
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "bar-gauge",
+      "title": "Duração da última parada (s)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn:(r)=> r._measurement == \"events\" and r.type == \"stop\") |> last() |> keep(columns: [\"_time\",\"_value\"])"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Histórico de Paradas (últimas 24h)",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 16,
+        "h": 10
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: -24h) |> filter(fn:(r)=> r._measurement == \"events\" and r.type == \"stop\") |> keep(columns: [\"_time\",\"_value\"]) |> sort(columns: [\"_time\"], desc: true)"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38
+}

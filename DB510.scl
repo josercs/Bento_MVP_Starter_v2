@@ -1,0 +1,9 @@
+DATA_BLOCK DB510
+  TITLE = 'Coils (Modbus 00001+)'
+  { S7_Optimized_Access := 'TRUE' }
+  VERSION : 0.1
+  VAR
+    Coils : ARRAY[1..64] OF BOOL;
+  END_VAR
+BEGIN
+END_DATA_BLOCK

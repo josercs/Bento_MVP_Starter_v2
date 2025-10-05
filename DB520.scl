@@ -1,0 +1,9 @@
+DATA_BLOCK DB520
+  TITLE = 'Discrete Inputs (Modbus 10001+) - reservado'
+  { S7_Optimized_Access := 'TRUE' }
+  VERSION : 0.1
+  VAR
+    DiscIn : ARRAY[1..64] OF BOOL;
+  END_VAR
+BEGIN
+END_DATA_BLOCK

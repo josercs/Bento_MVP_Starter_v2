@@ -1,0 +1,9 @@
+DATA_BLOCK DB501
+  TITLE = 'Input Registers (Modbus 30001+) - reservado'
+  { S7_Optimized_Access := 'TRUE' }
+  VERSION : 0.1
+  VAR
+    InReg : ARRAY[1..32] OF WORD;
+  END_VAR
+BEGIN
+END_DATA_BLOCK

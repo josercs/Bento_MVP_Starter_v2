@@ -1,0 +1,95 @@
+{
+  "title": "MVP — OEE Starter (Linha 1)",
+  "uid": "oee-mvp-l1",
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Good Count",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"modbus\" and r._field == \"GoodCount\") |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Scrap Count",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"modbus\" and r._field == \"ScrapCount\") |> last()"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Quality (%)",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        }
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"modbus\" and r._field == \"Quality\") |> last() |> map(fn: (r) => ({ r with _value: r._value * 100.0 }))"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "RUN (0/1)",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bool"
+        }
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"modbus\" and r._field == \"RUN\")"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Current (%) and Vibration (%)",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "query": "from(bucket: \"${INFLUX_BUCKET}\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"modbus\" and (r._field == \"Current_pct\" or r._field == \"Vibration_pct\"))"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38
+}

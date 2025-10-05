@@ -1,0 +1,38 @@
+services:
+  influxdb:
+    ports:
+      - "127.0.0.1:8087:8086"
+    networks:
+      - edge_net
+  grafana:
+    ports:
+      - "127.0.0.1:3001:3000"
+    networks:
+      - edge_net
+    security_opt:
+      - no-new-privileges:true
+  mosquitto:
+    ports:
+      - "127.0.0.1:1883:1883"
+    networks:
+      - edge_net
+  telegraf:
+    networks:
+      - edge_net
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+  stops:
+    networks:
+      - edge_net
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+networks:
+  edge_net:
+    driver: bridge

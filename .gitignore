@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env
+
+# Docker runtime data (do not commit DB files)
+mvp_shadow_gateway/influxdb/
+mvp_shadow_gateway/influxdb/**
+mvp_shadow_gateway/**/engine/
+mvp_shadow_gateway/**/engine/**
+mvp_shadow_gateway/**/replicationq/
+mvp_shadow_gateway/**/replicationq/**
+
+# Grafana session/runtime dirs (if any)
+mvp_shadow_gateway/grafana/data/
+mvp_shadow_gateway/grafana/data/**
+mvp_shadow_gateway/grafana/plugins/
+mvp_shadow_gateway/grafana/plugins/**

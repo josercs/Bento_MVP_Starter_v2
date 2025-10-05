@@ -1,0 +1,6 @@
+Name,Address,DataType,Comment
+DI_S1,%I0.0,Bool,Peça (pulso) via isolador 24V
+DI_S2,%I0.1,Bool,Refugo (pulso) via isolador 24V
+DI_RUN,%I0.2,Bool,Run bruto (contator/torre)
+AI_Current_Raw,%IW64,Int,4–20 mA (raw) SM1231
+AI_Vib_Raw,%IW66,Int,0–10 V (raw) SM1231
