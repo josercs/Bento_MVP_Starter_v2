@@ -5,8 +5,6 @@ services:
     restart: unless-stopped
     profiles:
       - mqtt
-    ports:
-      - "1883:1883"
     volumes:
       - ./mosquitto:/mosquitto
 
@@ -14,8 +12,6 @@ services:
     image: influxdb:2.7
     container_name: mvp_influxdb
     restart: unless-stopped
-    ports:
-      - "8086:8086"
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USER:-admin}
@@ -39,15 +35,17 @@ services:
       INFLUX_TOKEN: ${INFLUX_TOKEN:-admintoken}
       INFLUX_ORG: ${INFLUX_ORG:-retrofit4}
       INFLUX_BUCKET: ${INFLUX_BUCKET:-mvp}
+      SITE: "${SITE:-Bento}"
+      LINHA: "${LINHA:-Seccionadora01}"
+      MAQUINA: "${MAQUINA:-Maquina01}"
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./telegraf/processors:/etc/telegraf/processors:ro
 
   grafana:
     image: grafana/grafana:11.0.0
     container_name: mvp_grafana
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS:-admin}
@@ -70,6 +68,9 @@ services:
       INFLUX_ORG: ${INFLUX_ORG:-retrofit4}
       INFLUX_BUCKET: ${INFLUX_BUCKET:-mvp}
       INFLUX_TOKEN: ${INFLUX_TOKEN:-admintoken}
+      SITE: "${SITE:-Bento}"
+      LINHA: "${LINHA:-Seccionadora01}"
+      MAQUINA: "${MAQUINA:-Maquina01}"
     volumes:
       - ./services/stops:/app
     working_dir: /app

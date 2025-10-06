@@ -1,0 +1,4 @@
+# SITE,LINHA,MAQUINA,weekday,start,end,reason
+Fabrica_X,Linha_1,Seccionadora_01,Mon,06:00,06:20,Setup inicial
+Fabrica_X,Linha_1,Seccionadora_01,Mon,12:00,13:00,Almoço
+Fabrica_X,Linha_1,Seccionadora_01,Mon,18:00,18:15,Passagem de turno

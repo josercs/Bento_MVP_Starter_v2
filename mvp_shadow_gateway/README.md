@@ -80,6 +80,7 @@ Observações:
 Notas importantes:
 - As variáveis `DOCKER_INFLUXDB_INIT_*` do Influx só têm efeito na primeira inicialização do volume. Para reconfigurar do zero, derrube com `down -v` (apaga dados).
 - Altere rapidamente as senhas na UI após o primeiro login para ambientes reais.
+- Para produção, prefira usar os scripts de setup (`scripts/setup.ps1` ou `scripts/setup.sh`): eles sobem Influx/Grafana, criam org/buckets (`mvp_raw` e `mvp_agg`), geram um `INFLUX_TOKEN` novo e gravam esse token no seu `.env`, além de instalar a task de agregação de 15 min. Assim você evita usar credenciais/tokens de exemplo do compose.
 
 ## Serviço de Paradas (stops)
 Subir quando desejar:
@@ -186,6 +187,14 @@ Retenção de dados: padrão `30d` em `DOCKER_INFLUXDB_INIT_RETENTION`. Para alt
 - Garanta que o S7-1200 (MB_SERVER) esteja no mesmo segmento de rede do host ou com rota/NAT adequada.
 - Mapa Modbus padrão (coils 1..3 e holding 1,2,10..13). Ajuste em `telegraf/telegraf.conf` conforme seu projeto.
 - Intervalos de coleta: `agent.interval = 500ms` (ajuste se necessário).
+
+## Recomendações no lado do PLC (S7‑1200)
+- Use detecção de borda (R_TRIG) para os sinais de peça boa/sucata (S1_piece/S2_scrap) e aplique antirruído (debounce) de 10–30 ms para evitar contagens indevidas por bounce.
+- Armazene contadores de Good/Scrap como UDInt (32 bits) em DB retentivo, com tratamento de rollover (o gateway compõe 32 bits a partir de pares 16‑bit via `telegraf/processors/32bit_join.star`).
+- Marque as áreas de memória (DBs) como retentivas para não perder contagem após quedas de energia.
+- Mantenha um heartbeat (bit ou contador) para diagnóstico de resets/reinicializações do PLC.
+- Garanta que o MB_SERVER esteja ativo e que os endereços estejam alinhados com `TIA_TagTable_MVP.csv` (coils 1..3; holdings 1,2,10..13). Ajuste byte order se seu mapeamento diferir.
+- Para a bobina RUN, faça filtragem/anti‑ruído se necessário, garantindo estabilidade do estado operando/parado que alimenta o cálculo de Disponibilidade (A%).
 
 ## Notas de implementação (alterações aplicadas)
 - Compose: `stops` movido para dentro de `services`; `mosquitto` em perfil `mqtt`.

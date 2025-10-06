@@ -1,4 +1,5 @@
 import os, time, datetime, urllib.request, json
+from planned_utils import Planner
 from pymodbus.client import ModbusTcpClient
 
 MB_HOST   = os.getenv("MB_HOST", "192.168.1.121")
@@ -10,6 +11,13 @@ INFLUX_URL   = os.getenv("INFLUX_URL", "http://influxdb:8086")
 INFLUX_ORG   = os.getenv("INFLUX_ORG", "retrofit4")
 INFLUX_BUCKET= os.getenv("INFLUX_BUCKET", "mvp")
 INFLUX_TOKEN = os.getenv("INFLUX_TOKEN", "admintoken")
+
+# Context tags
+SITE   = os.getenv("SITE", "Bento")
+LINHA  = os.getenv("LINHA", "Seccionadora01")
+MAQUINA= os.getenv("MAQUINA", "Maquina01")
+
+planner = Planner()
 
 def influx_write(line):
     url = f"{INFLUX_URL}/api/v2/write?org={INFLUX_ORG}&bucket={INFLUX_BUCKET}&precision=s"
@@ -44,10 +52,18 @@ try:
             # back to run: if lasted long enough, record event
             dur = t - t_zero
             if dur >= STOP_SECS:
-                line = f'events,type=stop duration_s={dur} {t}'
+                now_dt = datetime.datetime.utcfromtimestamp(t)
+                planned, reason = planner.is_planned(now_dt, SITE, LINHA, MAQUINA)
+                tags = f"type=stop,SITE={SITE},LINHA={LINHA},MAQUINA={MAQUINA},planned={'true' if planned else 'false'}"
+                fields = f"duration_s={dur}"
+                if reason:
+                    # quote reason in line protocol
+                    reason_s = reason.replace('"','\"')
+                    fields += f",reason=\"{reason_s}\""
+                line = f"events,{tags} {fields} {t}"
                 try:
                     influx_write(line)
-                    print(f"[stops] stop event: duration={dur}s @ {t}")
+                    print(f"[stops] stop event: duration={dur}s planned={planned} @ {t}")
                 except Exception as e:
                     print("[stops] influx write error:", e)
             t_zero = None
