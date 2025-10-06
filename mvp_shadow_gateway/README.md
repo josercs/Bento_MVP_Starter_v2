@@ -107,6 +107,21 @@ No Telegraf, a saída MQTT só é habilitada quando `MQTT_ENABLE=true` no `.env`
 
 Saída MQTT (quando habilitada) usa `MQTT_HOST`, `MQTT_PORT` e `MQTT_TOPIC_PREFIX` do `.env`.
 
+### Configuração versionada do Mosquitto
+- Arquivo de configuração: `mosquitto/conf/mosquitto.conf` (versionado). Persistência ativada e `allow_anonymous=false`.
+- Volumes mapeados: `mosquitto/conf`, `mosquitto/data`, `mosquitto/log`.
+- Primeiro uso: gere o passwordfile dentro do container e crie um usuário:
+  ```powershell
+  docker exec -it mvp_mosquitto sh -lc "mosquitto_passwd -c /mosquitto/conf/passwordfile $env:MQTT_USERNAME"
+  ```
+  Depois reinicie o serviço: `docker restart mvp_mosquitto`.
+
+### Limites de recursos
+- Foram definidos limites simples (cpus/memória) para `telegraf`, `mosquitto` e `stops` no compose para maior robustez em edge.
+
+### Consumir MQTT no Telegraf (opcional)
+- Exemplo comentado em `telegraf/telegraf.conf` para `[[inputs.mqtt_consumer]]` apontando para `mosquitto:1883`, usando `MQTT_USERNAME`/`MQTT_PASSWORD` do `.env`.
+
 ## Diagnóstico rápido (Smoke tests)
 - Grafana:
 ```powershell

@@ -6,7 +6,19 @@ services:
     profiles:
       - mqtt
     volumes:
-      - ./mosquitto:/mosquitto
+      - ./mosquitto/conf:/mosquitto/conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$$SYS/broker/uptime", "-C", "1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   influxdb:
     image: influxdb:2.7
@@ -41,6 +53,11 @@ services:
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - ./telegraf/processors:/etc/telegraf/processors:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 256M
 
   grafana:
     image: grafana/grafana:11.0.0
@@ -75,3 +92,8 @@ services:
       - ./services/stops:/app
     working_dir: /app
     command: /bin/sh -c "pip install pymodbus==3.6.5 && python /app/stops.py"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
