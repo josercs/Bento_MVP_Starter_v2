@@ -62,7 +62,7 @@ Guia avançado e prático para configurar seu S7‑1200 como servidor Modbus/TCP
 > Variante TIA v16 (como no seu screenshot):
 > - Pinos visíveis: EN, DISCONNECT, MB_HOLD_REG, CONNECT, ENO, NDR, DR, ERROR, STATUS.
 > - Use assim:
->   - CONNECT = TRUE (mantém o servidor ativo)
+>   - CONNECT: este pino é IN_OUT (não aceita constante). Crie uma tag BOOL (ex.: `MB_Params.ConnectEnable`) com valor inicial TRUE e conecte ao pino. Opcional: garantir TRUE no start em OB100: `MB_Params.ConnectEnable := TRUE;`
 >   - MB_HOLD_REG = P#DB500.DBX0.0 WORD 64
 >   - Deixe MB_INPUT_REG/MB_COILS/MB_DISC_INPUTS em branco (não disponíveis nesta visualização)
 > - Para Coils e Inputs indisponíveis: mapeie S1/S2/RUN em WORDs de Holding (40003..40005) com valores 0/1.
